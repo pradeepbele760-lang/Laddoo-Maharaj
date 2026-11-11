@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WP AUTOMATION</title>
+  <style>
+    :root{--green:#128c7e;--green2:#25d366;--dark:#0f172a;--muted:#64748b;--bg:#f1f5f4;--card:#fff;--line:#e2e8f0;--red:#dc2626;--amber:#d97706;--blue:#2563eb}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:var(--dark)}header{background:linear-gradient(135deg,#075e54,#128c7e 55%,#25d366);color:white;padding:26px 18px}.wrap{max-width:1280px;margin:auto}h1{margin:0;font-size:30px}h2{margin:0 0 12px}p{color:var(--muted)}header p{color:#eafff7}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tabs button{background:white;color:var(--dark);border:1px solid var(--line)}.tabs button.active{background:var(--dark);color:white}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 10px 25px #00000008}.span3{grid-column:span 3}.span4{grid-column:span 4}.span5{grid-column:span 5}.span6{grid-column:span 6}.span7{grid-column:span 7}.span8{grid-column:span 8}.span12{grid-column:span 12}input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;margin:5px 0 10px;font:inherit;background:white}textarea{min-height:86px}button{border:0;background:var(--green);color:white;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}button.secondary{background:#111827}button.danger{background:var(--red)}button.small{padding:6px 9px;font-size:12px}.pill{display:inline-block;padding:4px 9px;border-radius:999px;background:#eef2ff;margin:2px;font-size:12px}.ok{color:var(--green)}.bad{color:var(--red)}.metric{font-size:30px;font-weight:800}.list{display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.col{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:10px;min-height:180px}.col h3{margin:0 0 8px;font-size:14px}.lead{background:white;border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0}.hidden{display:none}pre{white-space:pre-wrap;background:#0b1020;color:#d1e7dd;padding:12px;border-radius:12px;max-height:260px;overflow:auto}@media(max-width:900px){.grid{display:block}.card{margin:12px 0}.kanban{grid-template-columns:1fr}.span3,.span4,.span5,.span6,.span7,.span8,.span12{grid-column:auto}}
+  </style>
+</head>
+<body>
+<header><div class="wrap"><h1>WP AUTOMATION 🛠️</h1><p>WhatsApp-first CRM on Hostinger: capture leads, organize conversations, automate replies, follow up, and run campaigns.</p></div></header>
+<main class="wrap">
+  <div class="tabs"><button class="active" onclick="tab('overview',this)">Overview</button><button onclick="tab('leads',this)">Leads</button><button onclick="tab('pipeline',this)">Pipeline</button><button onclick="tab('bookings',this)">Bookings</button><button onclick="tab('campaigns',this)">Campaigns</button><button onclick="tab('templates',this)">Templates</button><button onclick="tab('flows',this)">Flows</button><button onclick="tab('settings',this)">Settings</button><button onclick="location.href='/docs.html'">Docs</button></div>
+
+  <section id="overview" class="page grid">
+    <div class="card span4"><h2>API Key</h2><input id="apiKey" type="password" placeholder="API_KEY"><button onclick="saveKey()">Save Key</button></div>
+    <div class="card span4"><h2>WhatsApp</h2><h3 id="status">Loading...</h3><p id="statusHelp"></p><button onclick="loadAll()">Refresh</button> <button class="secondary" onclick="reconnect('fresh')">Reconnect (New QR)</button><div id="qr"></div></div>
+    <div class="card span4"><h2>Quick Send</h2><input id="sendTo" placeholder="91XXXXXXXXXX"><textarea id="sendText" placeholder="Message"></textarea><button onclick="sendMsg()">Send</button><pre id="sendOut"></pre></div>
+    <div class="card span3"><p>Total Leads</p><div class="metric" id="mContacts">0</div></div><div class="card span3"><p>Messages</p><div class="metric" id="mMessages">0</div></div><div class="card span3"><p>Due Follow-ups</p><div class="metric" id="mDue">0</div></div><div class="card span3"><p>Bookings</p><div class="metric" id="mBookings">0</div></div>
+    <div class="card span6"><h2>Recent Messages</h2><div id="messages" class="list"></div></div><div class="card span6"><h2>Due Follow-ups</h2><div id="followups" class="list"></div></div>
+  </section>
+
+  <section id="leads" class="page grid hidden">
+    <div class="card span5"><h2>Add / Update Lead</h2><input id="leadPhone" placeholder="Phone"><input id="leadName" placeholder="Name"><input id="leadTags" placeholder="Tags comma separated"><input id="leadSource" placeholder="Source e.g. WhatsApp, Instagram"><input id="leadValue" placeholder="Lead value"><input id="leadFollow" placeholder="Next follow-up e.g. 2026-05-18 11:00"><select id="leadStatus"><option>new</option><option>contacted</option><option>qualified</option><option>won</option><option>lost</option></select><textarea id="leadNotes" placeholder="Notes"></textarea><button onclick="saveLead()">Save Lead</button><pre id="leadOut"></pre></div>
+    <div class="card span7"><h2>Contacts / Leads</h2><input id="leadSearch" placeholder="Search leads" oninput="loadContacts()"><button onclick="exportCsv()">Export CSV</button><div id="contacts" class="list"></div></div>
+  </section>
+
+  <section id="pipeline" class="page hidden"><div class="card"><h2>Lead Pipeline</h2><div class="kanban" id="pipelineBoard"></div></div></section>
+
+  <section id="bookings" class="page hidden"><div class="card"><h2>Bookings / Appointments</h2><p>Completed conversation flows appear here as clean business records.</p><button onclick="exportBookings()">Export Bookings CSV</button><div id="bookingsTable" class="list"></div></div></section>
+
+  <section id="campaigns" class="page grid hidden">
+    <div class="card span5"><h2>Broadcast / Campaign</h2><input id="campName" placeholder="Campaign name"><select id="campFilter"><option value="">All contacts</option><option value="tag">By tag</option><option value="status">By status</option></select><input id="campFilterValue" placeholder="Tag or status value"><select id="campTemplate"></select><textarea id="campMsg" placeholder="Or custom message. Use {{name}}, {{phone}}"></textarea><input id="campDelay" placeholder="Delay ms e.g. 3000" value="3000"><button onclick="runCampaign()">Start Campaign</button><pre id="campOut"></pre></div>
+    <div class="card span7"><h2>Campaign History</h2><div id="campaignHistory" class="list"></div></div>
+  </section>
+
+  <section id="templates" class="page grid hidden">
+    <div class="card span5"><h2>Message Template</h2><input id="tplName" placeholder="Template name"><textarea id="tplText" placeholder="Hi {{name}}, ..."></textarea><button onclick="saveTemplate()">Save Template</button><pre id="tplOut"></pre></div>
+    <div class="card span7"><h2>Templates</h2><div id="templatesList" class="list"></div></div>
+  </section>
+
+  <section id="flows" class="page hidden"><div class="card"><h2>Professional Conversation Flows</h2><p>These flows collect details step-by-step like a SaaS automation bot. Example: customer says 'book hotel' → bot asks name, date, time, guests, phone → saves lead.</p><div id="flowsList" class="list"></div><pre id="optionsOut"></pre></div></section>
+
+  <section id="settings" class="page grid hidden">
+    <div class="card span6"><h2>Quick Setup (No Coding)</h2><p>For normal users: set business name + bot name and click one button.</p><input id="qsBusinessName" placeholder="Business Name"><input id="qsBotName" placeholder="Bot Name, e.g. Medical Assistant Bot"><select id="qsType"><option value="restaurant">Restaurant</option><option value="doctor">Doctor/Clinic</option><option value="tutor">Tutor</option><option value="salon">Salon</option><option value="realestate">Real Estate</option><option value="ecommerce">Ecommerce</option><option value="freelancer" selected>Freelancer/Service</option></select><button onclick="quickSetup()">Use Recommended Setup</button><pre id="qsOut"></pre></div><div class="card span6"><h2>Bot Identity (for normal users)</h2><p>Set bot name and intro style. This is what customers see in auto replies.</p><input id="botName" placeholder="e.g. Medical Assistant Bot"><label><input id="botIntroEnabled" type="checkbox" checked> Add bot intro in replies</label><input id="introText" placeholder="Optional custom intro, e.g. Hi, this is CareBot."><select id="botTone"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="formal">Formal</option></select><button onclick="saveBotSettings()">Save Bot Identity</button><pre id="botOut"></pre><hr><h3>Timezone & Slot Planner</h3><select id="slotPreset"><option value="custom">Custom</option><option value="clinic">Clinic Standard</option><option value="restaurant">Restaurant Standard</option><option value="salon">Salon Standard</option><option value="tutor">Tutor Standard</option></select><button onclick="applySlotPreset()">Apply Slot Preset</button><label><input id="slotsEnabled" type="checkbox" checked> Enable slot validation</label><input id="timezone" placeholder="Timezone e.g. Asia/Kolkata"><textarea id="availableSlotsWeekday" placeholder="Weekday slots, one per line"></textarea><textarea id="availableSlotsWeekend" placeholder="Weekend slots, one per line"></textarea><button onclick="saveSlots()">Save Slots</button><pre id="slotOut"></pre></div>
+    <div class="card span6"><h2>Business Preset</h2><p>Choose business type. It will auto-load useful replies, templates, tags and customer flow.</p><select id="presetSelect"></select><label><input id="keepExistingPreset" type="checkbox" checked> Keep existing templates/replies</label><br><button onclick="applyPreset()">Apply Business Preset</button><pre id="presetOut"></pre></div>
+    <div class="card span6"><h2>Google Sheets Auto-Sync Link</h2><p>Simple method for users: click generate, copy the formula, paste it into Google Sheets cell A1. It automatically creates columns and keeps pulling latest CRM data.</p><button onclick="loadSheetLinks()">Generate Google Sheet Formula</button><pre id="sheetLinksOut"></pre></div><div class="card span6"><h2>Advanced Integrations</h2><p>Optional: paste Google Sheets Apps Script / Zapier / Make webhook URL. New messages and contact updates will be posted there.</p><input id="googleSheetsWebhook" placeholder="Google Sheets webhook"><input id="zapierWebhook" placeholder="Zapier webhook"><input id="makeWebhook" placeholder="Make webhook"><button onclick="saveIntegrations()">Save Integrations</button><pre id="intOut"></pre></div>
+    <div class="card span6"><h2>Restaurant Menu Items</h2><p>For restaurant preset: add food items here. Customer gets this list automatically when they reply MENU.</p><input id="productName" placeholder="Item name"><input id="productPrice" placeholder="Price (e.g. 249)"><input id="productCategory" placeholder="Category (e.g. Main Course)"><button onclick="saveProduct()">Add / Update Item</button><div id="products" class="list"></div></div>
+    <div class="card span6"><h2>Tasks / Follow-up Reminders</h2><input id="taskTitle" placeholder="Task title"><input id="taskPhone" placeholder="Phone"><input id="taskDue" placeholder="Due date/time"><button onclick="saveTask()">Add Task</button><div id="tasks" class="list"></div></div>
+  </section>
+</main>
+<script>
+const $=id=>document.getElementById(id);function byId(id){return document.getElementById(id)};let key=localStorage.getItem('apiKey')||'';if(byId('apiKey')) byId('apiKey').value=key;let contacts=[];let templates=[];let presets=[];let editingTemplateId='';
+function headers(){return {'content-type':'application/json','x-api-key':key}}function saveKey(){const el=byId('apiKey'); key=(el?.value||'').trim();localStorage.setItem('apiKey',key);loadAll()}function tab(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));const pg=byId(id);if(pg)pg.classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');loadAll()}
+async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{...headers(),...(opts.headers||{})}});const j=await r.json().catch(()=>({ok:false,error:'Bad JSON'}));if(!r.ok)throw new Error(j.error||r.statusText);return j}
+async function safeRun(fn){try{return await fn()}catch(e){console.error(e);return null}}
+window.addEventListener('error',e=>console.error('UI error',e.message));
+window.addEventListener('unhandledrejection',e=>console.error('Promise error',e.reason));
+async function loadStatus(){try{const s=await api('/api/status');if(byId('status')) byId('status').textContent=s.connection;if(byId('status')) byId('status').className=s.connection==='open'?'ok':'bad';if(byId('statusHelp')) byId('statusHelp').textContent=s.connection==='open'?'Connected. Ready for automation.':'Scan QR if visible.';window._lastQrTs=window._lastQrTs||''; const qts=s.qrUpdatedAt||''; const qsrc=(window._lastQrTs===qts && window._lastQrSrc)?window._lastQrSrc:`/qr.png?t=${encodeURIComponent(qts||Date.now())}`; if(qts) window._lastQrTs=qts; window._lastQrSrc=qsrc; if(byId('qr')) byId('qr').innerHTML=s.qrAvailable?`<img src="${qsrc}" style="width:100%;max-width:460px">`:''}catch(e){if(byId('status')){byId('status').textContent='Need API key';byId('status').className='bad'}}}
+async function loadAnalytics(){try{const {analytics:a}=await api('/api/analytics');mContacts.textContent=a.contacts;mMessages.textContent=a.messages;mDue.textContent=a.dueFollowUps;mBookings.textContent=a.bookings||0}catch(e){}}
+async function loadBookings(){try{const {bookings}=await api('/api/bookings');bookingsTable.innerHTML=bookings.map(b=>`<div class="item"><b>${b.type}</b> <span class="pill">${b.status}</span><br><b>${b.name||'-'}</b> · ${b.phone}<br><small>${b.date||''} ${b.time||''} · ${b.createdAt}</small><pre>${JSON.stringify(b.details||{},null,2)}</pre><button class="small" onclick="updateBooking('${b.id}','confirmed')">Confirm</button> <button class="small danger" onclick="updateBooking('${b.id}','cancelled')">Cancel</button></div>`).join('')||'<p>No bookings yet. Test: send book hotel / appointment / demo from WhatsApp.</p>'}catch(e){if(window.bookingsTable)bookingsTable.innerHTML='<p>'+e.message+'</p>'}}
+async function updateBooking(id,status){await api('/api/bookings/'+id,{method:'PUT',body:JSON.stringify({status})});loadBookings()}
+async function exportBookings(){const r=await fetch('/api/bookings.csv',{headers:{'x-api-key':key}});const t=await r.text();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='bookings.csv';a.click()}
+async function loadContacts(){try{let q=$('leadSearch')?.value||'';const r=await api('/api/contacts'+(q?'?q='+encodeURIComponent(q):''));contacts=r.contacts;$('contacts').innerHTML=contacts.map(renderContact).join('')||'<p>No contacts yet.</p>';renderPipeline()}catch(e){if($('contacts'))$('contacts').innerHTML='<p>'+e.message+'</p>'}}
+function renderContact(c){return `<div class="item"><b>${c.name||c.phone||c.jid}</b> <span class="pill">${c.status||'new'}</span><br><small>${c.jid}</small><p>${c.notes||''}</p>${(c.tags||[]).map(t=>`<span class="pill">${t}</span>`).join('')}<br><small>Follow-up: ${c.nextFollowUpAt||'not set'} · Source: ${c.source||'-'} · Value: ${c.value||'-'}</small><br><button class="small" onclick="prefill('${c.phone}')">Edit</button> <button class="small" onclick="sendToLead('${c.phone}')">Message</button></div>`}
+function prefill(phone){const c=contacts.find(x=>x.phone==phone)||{};leadPhone.value=c.phone||'';leadName.value=c.name||'';leadTags.value=(c.tags||[]).join(',');leadSource.value=c.source||'';leadValue.value=c.value||'';leadFollow.value=c.nextFollowUpAt||'';leadStatus.value=c.status||'new';leadNotes.value=c.notes||''}function sendToLead(phone){sendTo.value=phone;window.scrollTo(0,0)}
+async function loadMessages(){try{const {messages}=await api('/api/messages');$('messages').innerHTML=messages.slice(0,40).map(m=>`<div class="item"><b>${m.fromMe?'You':m.phone}</b>: ${m.text}<br><small>${m.timestamp}</small></div>`).join('')||'<p>No messages yet.</p>'}catch(e){$('messages').innerHTML='<p>'+e.message+'</p>'}}
+async function loadFollowups(){try{const {followUps}=await api('/api/followups');$('followups').innerHTML=followUps.slice(0,30).map(c=>`<div class="item"><b>${c.name||c.phone}</b> — ${c.nextFollowUpAt}<p>${c.followUpNote||c.notes||''}</p></div>`).join('')||'<p>No follow-ups set.</p>'}catch(e){$('followups').innerHTML='<p>'+e.message+'</p>'}}
+function renderPipeline(){const statuses=['new','contacted','qualified','won','lost'];if(!$('pipelineBoard'))return;$('pipelineBoard').innerHTML=statuses.map(st=>`<div class="col"><h3>${st}</h3>${contacts.filter(c=>(c.status||'new')===st).map(c=>`<div class="lead"><b>${c.name||c.phone}</b><br><small>${c.lastMessage||''}</small></div>`).join('')}</div>`).join('')}
+async function sendMsg(){try{sendOut.textContent='Sending...';sendOut.textContent=JSON.stringify(await api('/api/send',{method:'POST',body:JSON.stringify({to:sendTo.value,message:sendText.value})}),null,2);loadAll()}catch(e){sendOut.textContent=e.message}}
+async function saveLead(){try{const body={phone:leadPhone.value,name:leadName.value,status:leadStatus.value,tags:leadTags.value.split(',').map(x=>x.trim()).filter(Boolean),source:leadSource.value,value:leadValue.value,nextFollowUpAt:leadFollow.value,notes:leadNotes.value};leadOut.textContent=JSON.stringify(await api('/api/contacts',{method:'POST',body:JSON.stringify(body)}),null,2);loadAll()}catch(e){leadOut.textContent=e.message}}
+async function exportCsv(){const r=await fetch('/api/contacts.csv',{headers:{'x-api-key':key}});const t=await r.text();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='contacts.csv';a.click()}
+async function loadFlows(){try{const {flows}=await api('/api/flows');flowsList.innerHTML=flows.map(f=>`<div class="item"><b>${f.name}</b><p>Triggers: ${f.intents.join(', ')}</p><small>Steps: ${f.steps.map(s=>s.key).join(' → ')}</small></div>`).join(''); const opt=await api('/api/options'); optionsOut.textContent='MENU: '+opt.menu.join(' | ')+'\nTimezone: '+opt.timezone+'\nToday Slots: '+opt.slots.join(', ');}catch(e){if(window.flowsList)flowsList.innerHTML='<p>'+e.message+'</p>'}}
+async function loadPresets(){try{const r=await api('/api/presets');presets=r.presets;presetSelect.innerHTML=presets.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}catch(e){}}
+async function applyPreset(){try{presetOut.textContent=JSON.stringify(await api('/api/presets/apply',{method:'POST',body:JSON.stringify({preset:presetSelect.value,keepExisting:keepExistingPreset.checked})}),null,2);loadAll()}catch(e){presetOut.textContent=e.message}}
+async function loadTemplates(){try{const r=await api('/api/templates');templates=r.templates;templatesList.innerHTML=templates.map(t=>`<div class="item"><b>${t.name}</b><p>${t.text}</p><button class="small" onclick="editTemplate('${t.id}')">Edit</button> <button class="small danger" onclick="deleteTemplate('${t.id}')">Delete</button></div>`).join('');campTemplate.innerHTML='<option value="">No template</option>'+templates.map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}catch(e){}}
+function editTemplate(id){const t=templates.find(x=>x.id===id);if(!t)return;editingTemplateId=id;tplName.value=t.name;tplText.value=t.text;window.scrollTo(0,document.body.scrollHeight)}
+async function deleteTemplate(id){await api('/api/templates/'+id,{method:'DELETE'});loadTemplates()}
+async function saveTemplate(){try{const payload={name:tplName.value,text:tplText.value};if(editingTemplateId){await api('/api/templates/'+editingTemplateId,{method:'PUT',body:JSON.stringify(payload)});editingTemplateId='';}else{await api('/api/templates',{method:'POST',body:JSON.stringify(payload)});}tplOut.textContent='Saved';tplName.value='';tplText.value='';loadTemplates()}catch(e){tplOut.textContent=e.message}}
+async function runCampaign(){try{const body={name:campName.value,templateId:campTemplate.value,message:campMsg.value,delayMs:campDelay.value};if(campFilter.value)body[campFilter.value]=campFilterValue.value;campOut.textContent='Running...';campOut.textContent=JSON.stringify(await api('/api/campaigns',{method:'POST',body:JSON.stringify(body)}),null,2);loadCampaigns()}catch(e){campOut.textContent=e.message}}
+async function loadCampaigns(){try{const {campaigns}=await api('/api/campaigns');campaignHistory.innerHTML=campaigns.map(c=>`<div class="item"><b>${c.name}</b> <span class="pill">sent ${c.sent}</span> <span class="pill">failed ${c.failed}</span><br><small>${c.createdAt}</small></div>`).join('')||'<p>No campaigns yet.</p>'}catch(e){}}
+
+
+async function quickSetup(){
+  try{
+    qsOut.textContent='Applying...';
+    const body={businessName:qsBusinessName.value,botName:qsBotName.value,businessType:qsType.value,introText:'Hi, welcome to {{botName}}.'};
+    qsOut.textContent=JSON.stringify(await api('/api/quick-setup',{method:'POST',body:JSON.stringify(body)}),null,2);
+    await loadAll();
+  }catch(e){qsOut.textContent=e.message}
+}
+
+async function loadBotSettings(){try{const r=await api('/api/settings');botName.value=r.settings.botName||'Assistant Bot';botIntroEnabled.checked=r.settings.botIntroEnabled!==false;botTone.value=r.settings.tone||'professional';introText.value=r.settings.introText||'';slotsEnabled.checked=r.settings.slotsEnabled!==false;timezone.value=r.settings.timezone||'Asia/Kolkata';availableSlotsWeekday.value=(r.settings.availableSlotsWeekday||r.settings.availableSlots||[]).join('\n');availableSlotsWeekend.value=(r.settings.availableSlotsWeekend||[]).join('\n')}catch(e){}}
+
+
+function applySlotPreset(){
+  const presets={
+    clinic:{tz:'Asia/Kolkata',wd:['10:00 AM','11:00 AM','12:00 PM','2:00 PM','4:00 PM','6:00 PM'],we:['10:00 AM','12:00 PM','2:00 PM']},
+    restaurant:{tz:'Asia/Kolkata',wd:['12:00 PM','1:00 PM','2:00 PM','7:00 PM','8:00 PM','9:00 PM'],we:['12:00 PM','1:00 PM','2:00 PM','7:00 PM','8:00 PM','9:00 PM','10:00 PM']},
+    salon:{tz:'Asia/Kolkata',wd:['10:00 AM','11:30 AM','1:00 PM','3:00 PM','5:00 PM','7:00 PM'],we:['10:00 AM','12:00 PM','2:00 PM','4:00 PM','6:00 PM']},
+    tutor:{tz:'Asia/Kolkata',wd:['4:00 PM','5:00 PM','6:00 PM','7:00 PM','8:00 PM'],we:['10:00 AM','11:00 AM','12:00 PM','5:00 PM','6:00 PM']}
+  };
+  const p=presets[slotPreset.value];
+  if(!p)return;
+  timezone.value=p.tz; availableSlotsWeekday.value=p.wd.join('\n'); availableSlotsWeekend.value=p.we.join('\n');
+}
+
+async function saveSlots(){
+  try{
+    const weekday = (availableSlotsWeekday.value||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+    const weekend = (availableSlotsWeekend.value||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+    slotOut.textContent=JSON.stringify(await api('/api/settings',{
+      method:'PUT',
+      body:JSON.stringify({
+        slotsEnabled:slotsEnabled.checked,
+        timezone:timezone.value||'Asia/Kolkata',
+        availableSlotsWeekday:weekday,
+        availableSlotsWeekend:weekend,
+        availableSlots:weekday
+      })
+    }),null,2);
+  }catch(e){slotOut.textContent=e.message}
+}
+
+async function saveBotSettings(){try{botOut.textContent=JSON.stringify(await api('/api/settings',{method:'PUT',body:JSON.stringify({botName:botName.value,botIntroEnabled:botIntroEnabled.checked,tone:botTone.value,introText:introText.value})}),null,2)}catch(e){botOut.textContent=e.message}}
+
+async function loadSheetLinks(){try{const r=await api('/api/sheets-links');sheetLinksOut.textContent='STEP 1: Open a new Google Sheet.\nSTEP 2: Paste this in cell A1 for leads/contacts:\n\n'+r.contactsFormula+'\n\nOptional: paste this in another sheet for bookings/appointments:\n\n'+r.bookingsFormula+'\n\nOptional: paste this in another sheet for messages:\n\n'+r.messagesFormula+'\n\nDirect contacts CSV link:\n'+r.contactsCsv}catch(e){sheetLinksOut.textContent=e.message}}
+async function loadIntegrations(){try{const {integrations:i}=await api('/api/integrations');googleSheetsWebhook.value=i.googleSheetsWebhook||'';zapierWebhook.value=i.zapierWebhook||'';makeWebhook.value=i.makeWebhook||''}catch(e){}}
+async function saveIntegrations(){try{intOut.textContent=JSON.stringify(await api('/api/integrations',{method:'PUT',body:JSON.stringify({googleSheetsWebhook:googleSheetsWebhook.value,zapierWebhook:zapierWebhook.value,makeWebhook:makeWebhook.value})}),null,2)}catch(e){intOut.textContent=e.message}}
+async function saveTask(){try{await api('/api/tasks',{method:'POST',body:JSON.stringify({title:taskTitle.value,phone:taskPhone.value,dueAt:taskDue.value})});loadTasks()}catch(e){}}
+async function loadTasks(){try{const {tasks:t}=await api('/api/tasks');tasks.innerHTML=t.map(x=>`<div class="item"><b>${x.title}</b><br><small>${x.phone} · ${x.dueAt}</small></div>`).join('')||'<p>No tasks.</p>'}catch(e){}}
+async function saveProduct(){try{await api('/api/products',{method:'POST',body:JSON.stringify({name:productName.value,price:productPrice.value,category:productCategory.value})});productName.value='';productPrice.value='';productCategory.value='';loadProducts()}catch(e){}}
+async function deleteProduct(id){try{await api('/api/products/'+id,{method:'DELETE'});loadProducts()}catch(e){}}
+async function loadProducts(){try{const {products:p}=await api('/api/products');products.innerHTML=p.map(x=>`<div class="item"><b>${x.name}</b> ${x.price?`<span class="pill">₹${x.price}</span>`:''} ${x.category?`<span class="pill">${x.category}</span>`:''}<br><button class="small danger" onclick="deleteProduct('${x.id}')">Delete</button></div>`).join('')||'<p>No menu items yet.</p>'}catch(e){}}
+async function reconnect(mode='fresh'){await api('/api/reconnect',{method:'POST',body:JSON.stringify({mode})});setTimeout(loadStatus,1200);setTimeout(loadStatus,2800)}function loadAll(){const fns=[loadStatus,loadAnalytics,loadFlows,loadBookings,loadContacts,loadMessages,loadFollowups,loadPresets,loadTemplates,loadCampaigns,loadBotSettings,loadIntegrations,loadTasks,loadProducts];fns.forEach(fn=>safeRun(fn));}loadAll();setInterval(()=>safeRun(loadStatus),12000);
+</script>
+</body>
+</html>
